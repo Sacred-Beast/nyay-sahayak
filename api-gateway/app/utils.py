@@ -1,3 +1,6 @@
+# api-gateway/app/utils.py
+# Utility functions for API Gateway
+
 import shutil
 from fastapi import UploadFile
 
