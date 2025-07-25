@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - INGESTION_URL=http://ingestion:8001
+      - RAG_URL=http://rag:8002
+      - FACT_CHECKER_URL=http://fact_checker:8003
+      - SHARED_DATA_PATH=/shared_data
+    volumes:
+      - ./shared_data:/shared_data
+    depends_on:
+      - ingestion
+      - rag
+      - fact_checker
+
+  scraper:
+    build: ./scraper
+    environment:
+      - SHARED_DATA_PATH=/shared_data
+    volumes:
+      - ./shared_data:/shared_data
+
+  ingestion:
+    build: ./ingestion
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8004
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password
+      - SHARED_DATA_PATH=/shared_data
+    volumes:
+      - ./shared_data:/shared_data
+    depends_on:
+      - chromadb
+      - neo4j
+
+  rag:
+    build: ./rag
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8004
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - chromadb
+
+  fact_checker:
+    build: ./fact_checker
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8004
+    depends_on:
+      - chromadb
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8004:8000"
+    volumes:
+      - chroma_data:/chroma/.chroma/index
+
+  neo4j:
+    image: neo4j:5.19
+    ports:
+      - "7687:7687"
+      - "7474:7474"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j_data:/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - api-gateway
+
+volumes:
+  chroma_data:
+  neo4j_data:
