@@ -1,3 +1,5 @@
+# Dockerfile for API Gateway
+# This Dockerfile sets up a FastAPI application with Uvicorn as the ASGI server.
 FROM python:3.11-slim
 
 WORKDIR /app
