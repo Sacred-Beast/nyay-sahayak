@@ -1,3 +1,4 @@
+#configuration file for API Gateway
 import os
 from dotenv import load_dotenv
 
